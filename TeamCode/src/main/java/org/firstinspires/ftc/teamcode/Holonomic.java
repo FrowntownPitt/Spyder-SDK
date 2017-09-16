@@ -24,9 +24,9 @@ public class Holonomic extends OpMode {
     private DcMotor motorLeft;
     private DcMotor motorRight;
 
-    float offsetX = 0;
-    float offsetY = 0;
-    float offsetZ = 0;
+    private float offsetX = 0;
+    private float offsetY = 0;
+    private float offsetZ = 0;
 
     public void init(){
 
@@ -52,7 +52,7 @@ public class Holonomic extends OpMode {
 
     public void start(){
 
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         offsetX = angles.firstAngle;
         offsetY = angles.secondAngle;
@@ -65,9 +65,13 @@ public class Holonomic extends OpMode {
         telemetry.addData("Offset X", offsetX);
         telemetry.addData("Offset Y", offsetY);
         telemetry.addData("Offset Z", offsetZ);
-        telemetry.addData("Heading ", angles.firstAngle);
+        telemetry.addData("Heading ", angles.firstAngle-offsetX);
         telemetry.addData("Roll    ", angles.secondAngle);
         telemetry.addData("Pitch   ", angles.thirdAngle);
+
+        if(gamepad1.dpad_left){
+            offsetX = angles.firstAngle;
+        }
 
         double leftX = gamepad1.left_stick_x;
         double leftY = -gamepad1.left_stick_y;
@@ -76,7 +80,7 @@ public class Holonomic extends OpMode {
 
         double r = Math.hypot(leftX, leftY);
 
-        double targetAngle = Math.atan2(Math.toRadians(leftY), Math.toRadians(leftX));// - (angles.firstAngle);
+        double targetAngle = Math.atan2(leftY, leftX) - (Math.toRadians(angles.firstAngle-offsetX));
 
         double leftPower  = r * Math.sin(targetAngle) + rightX;
         double rightPower = r * Math.sin(targetAngle) - rightX;
